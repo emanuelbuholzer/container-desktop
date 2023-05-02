@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export USER=$(id -u -n)
+export USER=$(id --user --name)
 Xvnc -rfbauth passwd-file -PasswordFile /home/$USER/.config/vnc/passwd -rfbport 5901 -depth 32 -SendPrimary 0 -geometry 1920x1200 :1 &
 export DISPLAY=:1
 while true; do
