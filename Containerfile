@@ -1,0 +1,87 @@
+FROM docker.io/rockylinux:9
+
+RUN update-ca-trust
+
+
+# Create user with USERNAME and root
+ARG USERNAME
+ARG PASSWORD_USERNAME
+ARG PASSWORD_ROOT
+RUN useradd $USERNAME ; \
+    usermod -aG wheel $USERNAME ; \
+    echo $PASSWORD_ROOT | passwd --stdin root ; \
+    echo $PASSWORD_USERNAME | passwd --stdin $USERNAME ; 
+COPY .bashrc /home/$USERNAME/.bashrc
+COPY .bash_profile /home/$USERNAME/.bash_profile
+
+
+
+
+# Install podman and make it compatible to be run within a container
+RUN dnf -y update; yum -y reinstall shadow-utils; \
+    yum -y install podman fuse-overlayfs --exclude container-selinux sudo ; \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+COPY storage.conf /etc/containers/storage.conf
+COPY containers.conf /etc/containers/containers.conf
+COPY podman-containers.conf /home/$USERNAME/.config/containers/containers.conf
+COPY policy.json /etc/containers/policy.json
+
+RUN mkdir -p /home/$USERNAME/.local/share/containers ; \
+    echo $USERNAME:10000:5000 > /etc/subuid ; \
+    echo $USERNAME:10000:5000 > /etc/subgid ; 
+
+RUN mkdir -p /var/lib/shared/overlay-images \
+             /var/lib/shared/overlay-layers \
+             /var/lib/shared/vfs-images \
+             /var/lib/shared/vfs-layers && \
+    touch /var/lib/shared/overlay-images/images.lock && \
+    touch /var/lib/shared/overlay-layers/layers.lock && \
+    touch /var/lib/shared/vfs-images/images.lock && \
+    touch /var/lib/shared/vfs-layers/layers.lock
+
+ENV _CONTAINERS_USERNS_CONFIGURED="" _BUILDAH_STARTED_IN_USERNS="" BUILDAH_ISOLATION=chroot
+
+
+
+# Install tigervnc
+RUN dnf -y update; dnf install -y tigervnc-server xdpyinfo ; \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.* ; \
+    mkdir -p /home/$USERNAME/.config/vnc ; \
+    echo $PASSWORD_USERNAME | vncpasswd -f > /home/$USERNAME/.config/vnc/passwd
+
+
+
+# Setup fira code
+RUN dnf -y update ; \
+    dnf -y install fontconfig unzip ; \
+    rm -rf /var/cache /var/log/dnf* ; \
+    mkdir -p /home/$USERNAME/.local/share/fonts ; \
+    curl --fail --location --show-error https://github.com/tonsky/FiraCode/releases/download/6.2/Fira_Code_v6.2.zip --output fira-code.zip ; \
+    unzip -o -q -d /home/$USERNAME/.local/share/fonts fira-code.zip ; \
+    rm fira-code.zip ; \
+    fc-cache -rf
+
+
+
+# Install kitty
+RUN dnf -y update ; \
+    dnf -y install epel-release ; \
+    dnf -y install kitty
+COPY kitty.conf /home/$USERNAME/.config/kitty/kitty.conf
+
+
+# Install i3
+RUN dnf -y update ; \
+    dnf config-manager --enable crb ; \
+    dnf -y install i3 --setopt=install_weak_deps=False
+COPY i3.config /home/$USERNAME/.config/i3/config
+
+
+# Ensure the user directory and the init script is owned by USERNAME
+COPY init /
+RUN chown $USERNAME:$USERNAME /init ; \
+    chown -R $USERNAME:$USERNAME /home/$USERNAME ; 
+USER $USERNAME
+WORKDIR /home/$USERNAME
+CMD /init

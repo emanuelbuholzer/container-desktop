@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+echo -en "Password for $USER: "
+read -s PASSWORD_USERNAME
+echo 
+
+echo -en "Password for root: "
+read -s PASSWORD_ROOT
+echo 
+
+SHARED_SYS_CERTS_MOUNT=""
+SHARED_SYS_CERTS="/etc/pki/ca-trust/source/anchors"
+if [ -d "$SHARED_SYS_CERTS" ] ; then
+    SHARED_SYS_CERTS_MOUNT="--volume /etc/pki/ca-trust/source/anchors:/etc/pki/ca-trust/source/anchors:ro"
+fi
+
+podman build \
+    --build-arg USERNAME=$USER \
+    --build-arg PASSWORD_USERNAME=$PASSWORD_USERNAME \
+    --build-arg PASSWORD_ROOT=$PASSWORD_ROOT \
+    $SHARED_SYS_CERTS_MOUNT \
+    --tag desktop-base \
+    .
+
+IMAGE_ID=$(podman images --format "{{.ID}}" desktop-base | head -n1)
+
+podman run \
+    --detach \
+    --net=host \
+    $SHARED_SYS_CERTS_MOUNT \
+    --security-opt label=disable \
+    --security-opt seccomp=unconfined \
+    --device /dev/fuse:rw \
+    --name desktop-base \
+    --privileged $IMAGE_ID

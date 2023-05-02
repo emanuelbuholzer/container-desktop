@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+export USER=$(id -u -n)
+Xvnc -rfbauth passwd-file -PasswordFile /home/$USER/.config/vnc/passwd -rfbport 5901 -depth 32 -SendPrimary 0 -geometry 1920x1200 :1 &
+export DISPLAY=:1
+while true; do
+        if [ -n "$DISPLAY" ] && xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+                echo "DISPLAY is properly set and connected to a display!"
+                break
+        else
+                echo "Waiting for DISPLAY to be properly set and connected to a display..."
+                sleep .5
+        fi
+done
+i3 
