@@ -2,7 +2,7 @@
 
 USERNAME=""
 NAME=""
-while getopts "nu" opt; do
+while getopts "n:u:" opt; do
 	case $opt in
 		u)
 			USERNAME=$OPTARG
