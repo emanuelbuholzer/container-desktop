@@ -10,7 +10,7 @@ ARG PASSWORD_ROOT
 RUN useradd $USERNAME ; \
     usermod -aG wheel $USERNAME ; \
     echo $PASSWORD_ROOT | passwd --stdin root ; \
-    echo $PASSWORD_USERNAME | passwd --stdin $USERNAME ; 
+    echo $PASSWORD_USERNAME | passwd --stdin $USERNAME ;
 COPY .bashrc /home/$USERNAME/.bashrc
 COPY .bash_profile /home/$USERNAME/.bash_profile
 
@@ -29,7 +29,7 @@ COPY policy.json /etc/containers/policy.json
 
 RUN mkdir -p /home/$USERNAME/.local/share/containers ; \
     echo $USERNAME:10000:5000 > /etc/subuid ; \
-    echo $USERNAME:10000:5000 > /etc/subgid ; 
+    echo $USERNAME:10000:5000 > /etc/subgid ;
 
 RUN mkdir -p /var/lib/shared/overlay-images \
              /var/lib/shared/overlay-layers \
@@ -77,11 +77,15 @@ RUN dnf -y update ; \
     dnf -y install i3 --setopt=install_weak_deps=False
 COPY i3.config /home/$USERNAME/.config/i3/config
 
+# Install iproute for initialization checks
+RUN dnf -y update ; \
+    dnf -y install iproute
 
 # Ensure the user directory and the init script is owned by USERNAME
 COPY init /
 RUN chown $USERNAME:$USERNAME /init ; \
-    chown -R $USERNAME:$USERNAME /home/$USERNAME ; 
+    chown -R $USERNAME:$USERNAME /home/$USERNAME ;
 USER $USERNAME
 WORKDIR /home/$USERNAME
 CMD /init
+
