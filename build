@@ -1,15 +1,29 @@
 #!/usr/bin/env bash
 
 USERNAME=""
-while getopts "u" opt; do
+NAME=""
+while getopts "nu" opt; do
 	case $opt in
 		u)
 			USERNAME=$OPTARG
+			;;
+		n)
+			NAME=$OPTARG
 			;;
 		*)
 			exit 1
 			;;
 	esac
+done
+
+# Try to obtain the name
+while true; do
+	if [[ -z $NAME ]]; then
+		echo -n "Name for the desktop: "
+		read -r NAME
+	else
+		break
+	fi
 done
 
 # Try to obtain the user name
@@ -66,10 +80,12 @@ podman build \
     	--build-arg PASSWORD_USERNAME="$PASSWORD_USERNAME" \
     	--build-arg PASSWORD_ROOT="$PASSWORD_ROOT" \
     	$SHARED_SYS_CERTS_MOUNT \
-    	--tag desktop-base \
+    	--tag "$NAME" \
     	.
 
-IMAGE_ID=$(podman images --format "{{.ID}}" desktop-base | head -n1)
+IMAGE_ID=$(podman images --format "{{.ID}}" "$NAME" | head -n1)
+
+loginctl enable-linger $UID
 
 podman run \
 	--detach \
@@ -78,6 +94,6 @@ podman run \
     	--security-opt label=disable \
     	--security-opt seccomp=unconfined \
     	--device /dev/fuse:rw \
-    	--name desktop-base \
+    	--name "$NAME" \
     	--privileged \
     	"$IMAGE_ID"
