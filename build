@@ -44,12 +44,12 @@ while true; do
 			else
 				USERNAME=""
 			fi
+		else
+			# If we cannot detect it, just ask
+			echo -n "Username for non-root user: "
+			read -r USERNAME
+			continue
 		fi
-		
-		# If we cannot detect it, just ask
-		echo -n "Username for non-root user: "
-		read -r USERNAME
-		continue
 	fi
 
 	# Ensure a user name other than root is chosen
