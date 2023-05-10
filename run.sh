@@ -19,11 +19,11 @@ fi
 
 RFB_PORT=5900
 while true; do
-  if command -v ss; then
+  if command -v ss >/dev/null; then
     if ! ss -tulpn | grep $RFB_PORT >/dev/null 2>&1; then
       break
     fi
-  elif command -v lsof; then
+  elif command -v lsof >/dev/null; then
     if ! lsof -i -P -n | grep $RFB_PORT >/dev/null 2>&1; then
       break
     fi
