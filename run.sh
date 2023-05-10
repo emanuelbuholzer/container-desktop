@@ -11,26 +11,37 @@ while getopts "n:" opt; do
   esac
 done
 
+if [ ! -d "$1" ]; then
+  echo "first argument is not a directory"
+  exit 1
+fi
+
 SHARED_SYS_CERTS_MOUNT=""
 SHARED_SYS_CERTS="/etc/pki/ca-trust/source/anchors"
 if [ -d "$SHARED_SYS_CERTS" ]; then
   SHARED_SYS_CERTS_MOUNT="--volume /etc/pki/ca-trust/source/anchors:/etc/pki/ca-trust/source/anchors:ro"
 fi
 
-RFB_PORT=5900
-while true; do
-  if command -v ss >/dev/null; then
-    if ! ss -tulpn | grep $RFB_PORT >/dev/null 2>&1; then
-      break
+EXPOSED_PORTS=""
+EXPOSE_PORTS=$(cat "$1"/ports.conf)
+for EXPOSE_PORT in $EXPOSE_PORTS; do
+  EXPOSED_PORT=$EXPOSE_PORT
+  while true; do
+    if command -v ss >/dev/null; then
+      if ! ss -tulpn | grep "$EXPOSED_PORT" >/dev/null 2>&1; then
+        break
+      fi
+    elif command -v lsof >/dev/null; then
+      if ! lsof -i -P -n | grep "$EXPOSED_PORT" >/dev/null 2>&1; then
+        break
+      fi
     fi
-  elif command -v lsof >/dev/null; then
-    if ! lsof -i -P -n | grep $RFB_PORT >/dev/null 2>&1; then
-      break
-    fi
-  fi
-  ((RFB_PORT++))
+    ((EXPOSED_PORT++))
+  done
+  EXPOSED_PORTS+="--publish $EXPOSED_PORT:$EXPOSE_PORT "
+  echo "Publishing $EXPOSE_PORT under $EXPOSED_PORT"
 done
-echo "Using rfb port $RFB_PORT"
+
 
 # Try to obtain the name
 while true; do
@@ -48,7 +59,7 @@ fi
 
 podman run \
   --detach \
-  --publish $RFB_PORT:5901 \
+  $EXPOSED_PORTS \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \

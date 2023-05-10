@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -d "$1" ]; then
+  echo "first argument is not a directory"
+  exit 1
+fi
+
 # Determine the script directory, in which the build.sh.conf file is stored
 SOURCE=${BASH_SOURCE[0]}
 while [ -L "$SOURCE" ]; do

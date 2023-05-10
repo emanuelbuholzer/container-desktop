@@ -64,3 +64,18 @@ if test -n "$1"; then
     echo "$(basename $1) contains no configure.sh script"
   fi
 fi
+
+# TODO: In the future me might as well get the ports from the image in the registry to support tags, such that this part can end up in the run.sh script
+# e.g. skopeo inspect --raw "$image" | jq -r '.manifest.config.ExposedPorts | keys[]
+EXPOSE_PORTS=$(awk '/^EXPOSE/ {
+  for(i=2; i<=NF; i++) {
+    split($i, arr, "/");
+    port = arr[1];
+    if (!seen[port]) {
+      print port;
+      seen[port] = 1;
+    }
+  }
+}' "$1/Containerfile")
+
+echo "$EXPOSE_PORTS" > "$1"/ports.conf
