@@ -54,7 +54,18 @@ while true; do
 done
 
 if command -v loginctl; then
-  loginctl enable-linger "$(id -u)"
+  PID_1_COMM=""
+  if command -v ps >/dev/null; then
+    PID_1_COMM=$(ps -p 1 -o comm=)
+  elif test -d /proc; then
+    PID_1_COMM=$(cat /proc/1/comm)
+  else
+    echo "could not determine comm of pid 1"
+  fi
+
+  if ! "$PID_1_COMM" = "systemd"; then
+    loginctl enable-linger "$(id -u)"
+  fi
 fi
 
 podman run \
