@@ -1,9 +1,11 @@
-FROM docker.io/rockylinux:9
+FROM docker.io/fedora:38
 
 RUN update-ca-trust
 
 
 # Create user with USERNAME and root
+RUN dnf -y update; dnf install -y passwd ; \
+    rm -rf /var/cache /var/log/dnf*
 ARG USERNAME
 ARG PASSWORD_USERNAME
 ARG PASSWORD_ROOT
