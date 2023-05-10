@@ -1,10 +1,3 @@
-# .bashrc
-
-# Source global definitions
-if [ -f /etc/bashrc ]; then
-	. /etc/bashrc
-fi
-
 # User specific XDG environment
 # Note XDG_RUNTIME_DIR is set by default through pam_systemd
 # See also https://wiki.archlinux.org/title/XDG_Base_Directory
@@ -51,16 +44,3 @@ IFS=':'
 for CONFIG_DIR in $XDG_CONFIG_DIRS; do
 	mkdir -p "$CONFIG_DIR"
 done
-
-# Uncomment the following line if you don't like systemctl's auto-paging feature:
-# export SYSTEMD_PAGER=
-
-# User specific aliases and functions
-if [ -d ~/.bashrc.d ]; then
-	for rc in ~/.bashrc.d/*; do
-		if [ -f "$rc" ]; then
-			. "$rc"
-		fi
-	done
-fi
-unset rc

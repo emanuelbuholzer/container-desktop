@@ -1,0 +1,5 @@
+FROM base
+ARG USERNAME
+USER root
+RUN dnf install -y firefox
+USER $USERNAME
