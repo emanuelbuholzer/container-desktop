@@ -22,7 +22,7 @@ read -rs PASSWORD_ROOT
 echo
 
 # Yes, there should be another solutions for secrets x)
-cat >> "$SCRIPT_DIR"/build.conf << EOF
+cat >"$SCRIPT_DIR"/build.conf <<EOF
 PASSWORD_USERNAME=$PASSWORD_USERNAME
 PASSWORD_ROOT=$PASSWORD_ROOT
 EOF
