@@ -53,7 +53,7 @@ while true; do
   fi
 done
 
-if command -v loginctl; then
+if command -v loginctl>/dev/null; then
   PID_1_COMM=""
   if command -v ps >/dev/null; then
     PID_1_COMM=$(ps -p 1 -o comm=)
