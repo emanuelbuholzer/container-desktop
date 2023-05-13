@@ -11,6 +11,10 @@ while getopts "u:" opt; do
   esac
 done
 
+if [ ! -d "$1" ]; then
+  exit 1
+fi
+
 # Try to obtain the user name
 while true; do
   if test -z $USERNAME; then
@@ -78,4 +82,12 @@ EXPOSE_PORTS=$(awk '/^EXPOSE/ {
   }
 }' "$1/Containerfile")
 
-echo "$EXPOSE_PORTS" > "$1"/ports.conf
+PORTS_CONF=""
+for EXPOSE_PORT  in $EXPOSE_PORTS; do
+  echo -n "Protocol on port $EXPOSE_PORT: "
+  read -r EXPOSE_PROTOCOL
+  PORTS_CONF+="$EXPOSE_PORT=$EXPOSE_PROTOCOL"
+done
+
+
+echo "$PORTS_CONF" > "$1"/ports.conf
