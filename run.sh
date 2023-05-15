@@ -1,15 +1,20 @@
 #!/bin/bash
 
-while getopts "n:" opt; do
+while getopts "n:x" opt; do
   case $opt in
   n)
     NAME=$OPTARG
+    ;;
+  x)
+    USE_X11_FORWARDING=1
     ;;
   *)
     exit 1
     ;;
   esac
 done
+
+shift $((OPTIND - 1))
 
 if [ ! -d "$1" ]; then
   echo "first argument is not a directory"
@@ -42,6 +47,17 @@ for EXPOSE_PORT in $EXPOSE_PORTS; do
   echo "Publishing $EXPOSE_PORT under $EXPOSED_PORT"
 done
 
+X11_FORWARDING_ARGS=""
+if ! test -z $USE_X11_FORWARDING; then
+  if command -v xhost >/dev/null; then
+    xhost + local:
+  fi
+
+  X11_FORWARDING_ARGS="--env DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw "
+  if [ -d /dev/dri ]; then
+    X11_FORWARDING_ARGS+="--device /dev/dri "
+  fi
+fi
 
 # Try to obtain the name
 while true; do
@@ -68,13 +84,18 @@ if command -v loginctl>/dev/null; then
   fi
 fi
 
+RUN_ARGS=""
+if ! test -z "$2"; then
+  RUN_ARGS="$2"
+fi
+
 podman run \
   --detach \
   $EXPOSED_PORTS \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
-  --privileged \
   --device /dev/fuse:rw \
+  $X11_FORWARDING_ARGS \
   --name "$NAME" \
-  "$1"
+  "$1" $RUN_ARGS
