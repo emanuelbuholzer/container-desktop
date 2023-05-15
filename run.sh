@@ -63,7 +63,7 @@ if command -v loginctl>/dev/null; then
     echo "could not determine comm of pid 1"
   fi
 
-  if ! "$PID_1_COMM" = "systemd"; then
+  if [ ! "$PID_1_COMM" = "systemd" ]; then
     loginctl enable-linger "$(id -u)"
   fi
 fi
@@ -78,9 +78,3 @@ podman run \
   --device /dev/fuse:rw \
   --name "$NAME" \
   "$1"
-
-podman events --filter event=pod --format '{{.Action}}' | while read -r event; do
-    if [[ "$event" == "stop" ]]; then
-        /path/to/my_script.sh
-    fi
-done
