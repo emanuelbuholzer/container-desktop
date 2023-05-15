@@ -23,7 +23,7 @@ if [ -d "$SHARED_SYS_CERTS" ]; then
 fi
 
 EXPOSED_PORTS=""
-EXPOSE_PORTS=$(cat "$1"/ports.conf)
+EXPOSE_PORTS=$(awk -F= '{print $1}' "$1"/ports.conf)
 for EXPOSE_PORT in $EXPOSE_PORTS; do
   EXPOSED_PORT=$EXPOSE_PORT
   while true; do
@@ -78,3 +78,9 @@ podman run \
   --device /dev/fuse:rw \
   --name "$NAME" \
   "$1"
+
+podman events --filter event=pod --format '{{.Action}}' | while read -r event; do
+    if [[ "$event" == "stop" ]]; then
+        /path/to/my_script.sh
+    fi
+done
