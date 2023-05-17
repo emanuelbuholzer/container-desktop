@@ -1,12 +1,15 @@
 #!/bin/bash
 
-while getopts "n:x" opt; do
+while getopts "n:rx" opt; do
   case $opt in
   n)
     NAME=$OPTARG
     ;;
   x)
     USE_X11_FORWARDING=1
+    ;;
+  r)
+    REMOVE_AFTER_EXIT=1
     ;;
   *)
     exit 1
@@ -59,15 +62,9 @@ if ! test -z $USE_X11_FORWARDING; then
   fi
 fi
 
-# Try to obtain the name
-while true; do
-  if test -z $NAME; then
-    echo -n "Container name: "
-    read -r NAME
-  else
-    break
-  fi
-done
+if test -z $NAME; then
+  NAME="$(basename $1)"
+fi
 
 if command -v loginctl>/dev/null; then
   PID_1_COMM=""
@@ -89,8 +86,15 @@ if ! test -z "$2"; then
   RUN_ARGS="$2"
 fi
 
+REMOVE_AFTER_EXIT_ARGS=""
+if ! test -z $REMOVE_AFTER_EXIT; then
+  REMOVE_AFTER_EXIT_ARGS+="--rm --interactive --tty "
+else
+  REMOVE_AFTER_EXIT_ARGS+="--detach "
+fi
+
 podman run \
-  --detach \
+  $REMOVE_AFTER_EXIT_ARGS \
   $EXPOSED_PORTS \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
