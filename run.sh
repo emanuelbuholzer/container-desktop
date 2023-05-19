@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts "n:rx" opt; do
+while getopts "n:rv:x" opt; do
   case $opt in
   n)
     NAME=$OPTARG
@@ -10,6 +10,9 @@ while getopts "n:rx" opt; do
     ;;
   r)
     REMOVE_AFTER_EXIT=1
+    ;;
+  v)
+    VOLUMES+="-v $OPTARG "
     ;;
   *)
     exit 1
@@ -57,8 +60,13 @@ if ! test -z $USE_X11_FORWARDING; then
   fi
 
   X11_FORWARDING_ARGS="--env DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw "
-  if [ -d /dev/dri ]; then
-    X11_FORWARDING_ARGS+="--device /dev/dri "
+  
+  if command -v nvidia-ctk>/dev/null; then
+    X11_FORWARDING_ARGS+="--device nvidia.com/gpu=all "
+  else
+    if [ -d /dev/dri ]; then
+      X11_FORWARDING_ARGS+="--device /dev/dri "
+    fi
   fi
 fi
 
@@ -103,6 +111,8 @@ podman run \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
+  --userns=keep-id \
+  $VOLUMES \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
