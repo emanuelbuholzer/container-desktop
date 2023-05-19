@@ -88,7 +88,11 @@ fi
 
 REMOVE_AFTER_EXIT_ARGS=""
 if ! test -z $REMOVE_AFTER_EXIT; then
-  REMOVE_AFTER_EXIT_ARGS+="--rm --interactive --tty "
+  REMOVE_AFTER_EXIT_ARGS+="--rm "
+  if [ -t 1 ]; then
+    REMOVE_AFTER_EXIT_ARGS+="--interactive --tty "
+  fi
+
 else
   REMOVE_AFTER_EXIT_ARGS+="--detach "
 fi
