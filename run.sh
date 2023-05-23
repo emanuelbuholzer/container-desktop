@@ -53,7 +53,10 @@ done
 X11_FORWARDING_ARGS=""
 if ! test -z $USE_X11_FORWARDING; then
   if command -v xhost >/dev/null; then
-    xhost + local:
+    if ! $(xhost | grep -qc "LOCAL:"); then   
+      # FIXME: this could and should be more fine grained
+      xhost + local:
+    fi
   fi
 
   X11_FORWARDING_ARGS="--env DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw "
@@ -99,6 +102,7 @@ podman run \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
+  --userns=keep-id \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
