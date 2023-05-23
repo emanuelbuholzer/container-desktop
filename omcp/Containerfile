@@ -1,67 +1,27 @@
-FROM base
+ARG ROS_DISTRO="humble"
+FROM docker.io/ros:${ROS_DISTRO}
 
-ARG USERNAME
+# Install required binary packages for ar3_ros underlay workspace
+# Note: rvi2 and joint-state-publisher-gui are only required for the rviz launch config
+RUN apt-get update && \
+    apt-get install -y \
+    ros-${ROS_DISTRO}-ros2-control \
+    ros-${ROS_DISTRO}-ros2-controllers \
+    ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-rviz2 \
+    ros-${ROS_DISTRO}-joint-state-publisher-gui \
+    && rm -rf /var/lib/apt/lists/*
 
-USER root
+# Install blender
+RUN apt-get update && \
+    apt-get install -y \
+    blender \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN dnf update -y ; dnf install -y \
-    cmake \
-    gcc-c++ \
-    git \
-    make \
-    patch \
-    python3-colcon-common-extensions \
-    python3-flake8-builtins \
-    python3-flake8-comprehensions \
-    python3-flake8-docstrings \
-    python3-flake8-import-order \
-    python3-flake8-quotes \
-    python3-mypy \
-    python3-pip \
-    python3-pydocstyle \
-    python3-pytest \
-    python3-pytest-repeat \
-    python3-pytest-rerunfailures \
-    python3-rosdep \
-    python3-setuptools \
-    python3-vcstool \
-    wget \
-    ; \
-    rm -rf /var/cache /var/log/dnf*
+# Setup the omcp overlay workspace and install ar3_ros
+RUN mkdir -p /opt/ros/omcp/src && \
+    cd /opt/ros/omcp && \
+    . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    git clone https://github.com/emanuelbuholzer/ar3_ros.git src/ar3_ros && \
+    colcon build --symlink-install
 
-RUN python3 -m pip install -U --user \
-    flake8-blind-except==0.1.1 \
-    flake8-class-newline \
-    flake8-deprecated
-
-RUN mkdir -p /opt/ros2_rolling/src ; \
-    cd /opt/ros2_rolling ; \
-    vcs import --input https://raw.githubusercontent.com/ros2/ros2/rolling/ros2.repos src
-
-RUN dnf update -y ; \
-    cd /opt/ros2_rolling ; \
-    rosdep init ; \
-    rm -rf /var/cache /var/log/dnf*
-
-RUN cd /opt/ros2_rolling ; \
-    rosdep update ; \
-    rosdep install --from-paths src --ignore-src -y --skip-keys "assimp fastcdr ignition-cmake2 ignition-math6 python3-matplotlib python3-pygraphviz rti-connext-dds-6.0.1 urdfdom_headers" ; \
-    rm -rf /var/cache /var/log/dnf*
-
-RUN cd /opt/ros2_rolling ; \
-    colcon build --symlink-install --packages-skip qt_gui_cpp qt_gui_core rqt_gui_cpp rqt
-
-COPY files/backward_ros.patch /opt/ros2_rolling/backward_ros.patch
-RUN cd /opt/ros2_rolling ; \
-    vcs import --input https://raw.githubusercontent.com/ros-controls/ros2_controllers/master/ros2_controllers.rolling.repos src ; \
-    cd src/ros2_control ; \
-    git apply ../../backward_ros.patch ; \
-    cd ../.. ; \
-    git clone https://github.com/ros/diagnostics.git src/diagnostics
-
-RUN cd /opt/ros2_rolling ; \
-    colcon build --symlink-install --packages-skip qt_gui_cpp qt_gui_core rqt_gui_cpp rqt parameter_traits generate_parameter_module_example generate_parameter_library_example generate_parameter_library
-
-USER $USERNAME
-
-EXPOSE 5901

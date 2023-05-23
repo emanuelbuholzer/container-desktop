@@ -111,8 +111,8 @@ podman run \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
-  --userns=keep-id \
   $VOLUMES \
+  --hostname omcp \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
