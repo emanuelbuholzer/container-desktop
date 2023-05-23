@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts "n:rx" opt; do
+while getopts "n:rv:x" opt; do
   case $opt in
   n)
     NAME=$OPTARG
@@ -10,6 +10,9 @@ while getopts "n:rx" opt; do
     ;;
   r)
     REMOVE_AFTER_EXIT=1
+    ;;
+  v)
+    VOLUMES+="-v $OPTARG "
     ;;
   *)
     exit 1
@@ -53,15 +56,17 @@ done
 X11_FORWARDING_ARGS=""
 if ! test -z $USE_X11_FORWARDING; then
   if command -v xhost >/dev/null; then
-    if ! $(xhost | grep -qc "LOCAL:"); then   
-      # FIXME: this could and should be more fine grained
-      xhost + local:
-    fi
+    xhost + local:
   fi
 
   X11_FORWARDING_ARGS="--env DISPLAY --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw "
-  if [ -d /dev/dri ]; then
-    X11_FORWARDING_ARGS+="--device /dev/dri "
+
+  if command -v nvidia-ctk>/dev/null; then
+    X11_FORWARDING_ARGS+="--device nvidia.com/gpu=all "
+  else
+    if [ -d /dev/dri ]; then
+      X11_FORWARDING_ARGS+="--device /dev/dri "
+    fi
   fi
 fi
 
@@ -91,7 +96,11 @@ fi
 
 REMOVE_AFTER_EXIT_ARGS=""
 if ! test -z $REMOVE_AFTER_EXIT; then
-  REMOVE_AFTER_EXIT_ARGS+="--rm --interactive --tty "
+  REMOVE_AFTER_EXIT_ARGS+="--rm "
+  if [ -t 1 ]; then
+    REMOVE_AFTER_EXIT_ARGS+="--interactive --tty "
+  fi
+
 else
   REMOVE_AFTER_EXIT_ARGS+="--detach "
 fi
@@ -102,7 +111,7 @@ podman run \
   $SHARED_SYS_CERTS_MOUNT \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
-  --userns=keep-id \
+  $VOLUMES \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \

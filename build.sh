@@ -33,9 +33,9 @@ if ((PODMAN_MAJOR_VERSION >= 4 && PODMAN_MINOR_VERSION >= 5)); then
     IMAGE_BUILD_CONF+="--build-arg-file $1/build.conf "
   fi
 else
-  function get_build_args() {
+  get_build_args() {
     if [ -f "$1" ]; then
-      awk -F= '{printf "--build-arg %s=%s ", $1, $2}', "$1"
+      awk -F= '{printf "--build-arg %s=%s ", $1, $2}' "$1"
     fi
   }
   IMAGE_BUILD_CONF+=$(get_build_args "$1"/build.conf)

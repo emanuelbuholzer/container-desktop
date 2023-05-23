@@ -1,0 +1,27 @@
+ARG ROS_DISTRO="humble"
+FROM docker.io/ros:${ROS_DISTRO}
+
+# Install required binary packages for ar3_ros underlay workspace
+# Note: rvi2 and joint-state-publisher-gui are only required for the rviz launch config
+RUN apt-get update && \
+    apt-get install -y \
+    ros-${ROS_DISTRO}-ros2-control \
+    ros-${ROS_DISTRO}-ros2-controllers \
+    ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-rviz2 \
+    ros-${ROS_DISTRO}-joint-state-publisher-gui \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install blender
+RUN apt-get update && \
+    apt-get install -y \
+    blender \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup the omcp overlay workspace and install ar3_ros
+RUN mkdir -p /opt/ros/omcp/src && \
+    cd /opt/ros/omcp && \
+    . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    git clone https://github.com/emanuelbuholzer/ar3_ros.git src/ar3_ros && \
+    colcon build --symlink-install
+
