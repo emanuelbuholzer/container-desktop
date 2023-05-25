@@ -110,6 +110,8 @@ else
   REMOVE_AFTER_EXIT_ARGS+="--detach "
 fi
 
+IMAGE_NAME=$(basename $1)
+
 set -x
 
 podman run \
@@ -123,4 +125,4 @@ podman run \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
-  "$NAME" $RUN_ARGS
+  "$IMAGE_NAME" $RUN_ARGS
