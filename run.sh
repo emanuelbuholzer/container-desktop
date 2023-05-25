@@ -1,6 +1,8 @@
 #!/bin/bash
 
-while getopts "n:rv:x" opt; do
+HOST_NETWORKING=""
+
+while getopts ":hn:rv:x" opt; do
   case $opt in
   n)
     NAME=$OPTARG
@@ -13,6 +15,9 @@ while getopts "n:rv:x" opt; do
     ;;
   v)
     VOLUMES+="-v $OPTARG "
+    ;;
+  h)
+    HOST_NETWORKING+="--net host "
     ;;
   *)
     exit 1
@@ -105,6 +110,8 @@ else
   REMOVE_AFTER_EXIT_ARGS+="--detach "
 fi
 
+set -x
+
 podman run \
   $REMOVE_AFTER_EXIT_ARGS \
   $EXPOSED_PORTS \
@@ -112,7 +119,8 @@ podman run \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
   $VOLUMES \
+  $HOST_NETWORKING \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
-  "$1" $RUN_ARGS
+  "$NAME" $RUN_ARGS
