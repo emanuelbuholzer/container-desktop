@@ -125,4 +125,5 @@ podman run \
   --device /dev/fuse:rw \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
+  --hostname "$NAME" \
   "$IMAGE_NAME" $RUN_ARGS
