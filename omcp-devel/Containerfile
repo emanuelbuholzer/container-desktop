@@ -1,0 +1,6 @@
+ARG IMAGE="omcp"
+ARG TAG="latest"
+FROM ${IMAGE}:${TAG}
+
+RUN colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && \
+    mv build/compile_commands.json .
