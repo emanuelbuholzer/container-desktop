@@ -1,0 +1,50 @@
+FROM docker.io/ubuntu:jammy
+
+
+# See https://github.com/opencontainers/runc/issues/2517
+RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
+
+RUN apt-get update && \
+    apt-get install -y sudo curl && \
+    rm -rf /var/lib/apt/lists/*
+
+
+ARG USERNAME
+ENV USERNAME=$USERNAME
+RUN useradd $USERNAME \
+    --home-dir /home/$USERNAME \
+    --groups sudo \
+    --create-home \
+    --shell /bin/bash
+
+
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+
+RUN mkdir -p /home/$USERNAME/.local/bin
+ENV PATH="/home/$USERNAME/.local/bin:$PATH"
+
+ENV XDG_DATA_HOME=/home/$USERNAME/.local/share
+RUN mkdir -p $XDG_DATA_HOME
+
+ENV XDG_CONFIG_HOME=/home/$USERNAME/.config
+RUN mkdir -p $XDG_CONFIG_HOME
+
+ENV XDG_CACHE_HOME=/home/$USERNAME/.cache
+RUN mkdir -p $XDG_CACHE_HOME
+
+ENV XDG_DATA_DIRS="/usr/local/share:/usr/share"
+RUN IFS=':' ; for DATA_DIR in $XDG_DATA_DIRS ; do mkdir -p $DATA_DIR ; done
+
+
+USER root
+
+ENV XDG_CONFIG_DIRS="/etc/xdg"
+RUN IFS=':' ; for CONFIG_DIR in $XDG_CONFIG_DIRS ; do mkdir -p $CONFIG_DIR ; done
+USER $USERNAME
+
+
+USER root
+COPY init /init
+ENTRYPOINT /init ${USERNAME}

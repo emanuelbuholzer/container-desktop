@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+username=$1
+
+echo -e "\nPassword for root ..."
+passwd root
+
+echo -e "\nPassword for $username:"
+passwd "$username"
+
+echo
+su "$username"
+USER=$(id --user --name)
+export USER
