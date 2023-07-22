@@ -5,7 +5,7 @@ FROM docker.io/ubuntu:jammy
 RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
 
 RUN apt-get update && \
-    apt-get install -y sudo curl && \
+    apt-get install -y sudo curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
 
