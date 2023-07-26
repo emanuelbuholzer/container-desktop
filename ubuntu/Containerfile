@@ -45,8 +45,16 @@ USER $USERNAME
 
 # Install tigervnc and tools necesarry for init checks
 USER root
-RUN apt-get update ; apt-get install -y tigervnc-standalone-server x11-utils iproute2 i3
+RUN apt-get update ; apt-get install -y tigervnc-standalone-server x11-utils iproute2
 USER $USERNAME
+
+# A wm and term: i3 and kitty 
+USER root
+RUN apt-get update ; apt-get install -y i3 kitty
+USER $USERNAME
+COPY i3.config /home/$USERNAME/.config/i3/config
+COPY kitty.conf /home/$USERNAME/.config/kitty/kitty.conf
+
 
 USER root
 COPY init /init
