@@ -1,6 +1,7 @@
 FROM docker.io/ubuntu:jammy
 
 
+# Allow apt to be run within a container
 # See https://github.com/opencontainers/runc/issues/2517
 RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
 
@@ -8,7 +9,7 @@ RUN apt-get update && \
     apt-get install -y sudo curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
-
+# Create yourself
 ARG USERNAME
 ENV USERNAME=$USERNAME
 RUN useradd $USERNAME \
@@ -17,11 +18,10 @@ RUN useradd $USERNAME \
     --create-home \
     --shell /bin/bash
 
-
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
-
+# Let's make everyone happy by having XDG setup
 RUN mkdir -p /home/$USERNAME/.local/bin
 ENV PATH="/home/$USERNAME/.local/bin:$PATH"
 
@@ -37,14 +37,18 @@ RUN mkdir -p $XDG_CACHE_HOME
 ENV XDG_DATA_DIRS="/usr/local/share:/usr/share"
 RUN IFS=':' ; for DATA_DIR in $XDG_DATA_DIRS ; do mkdir -p $DATA_DIR ; done
 
-
 USER root
 
 ENV XDG_CONFIG_DIRS="/etc/xdg"
 RUN IFS=':' ; for CONFIG_DIR in $XDG_CONFIG_DIRS ; do mkdir -p $CONFIG_DIR ; done
 USER $USERNAME
 
+# Install tigervnc and tools necesarry for init checks
+USER root
+RUN apt-get update ; apt-get install -y tigervnc-standalone-server x11-utils iproute2 i3
+USER $USERNAME
 
 USER root
 COPY init /init
 ENTRYPOINT /init ${USERNAME}
+EXPOSE 5901

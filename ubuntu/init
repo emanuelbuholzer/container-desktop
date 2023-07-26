@@ -2,13 +2,51 @@
 
 username=$1
 
+# Setup credentials
 echo -e "\nPassword for root ..."
 passwd root
 
 echo -e "\nPassword for $username:"
-passwd "$username"
+read -rs password
 
+echo "$username:$password" |chpasswd "$username"
+
+mkdir -p "$XDG_CONFIG_HOME/vnc"
+echo "$password" | vncpasswd -f >> $XDG_CONFIG_HOME/vnc/passwd
+
+unset password
 echo
-su "$username"
-USER=$(id --user --name)
-export USER
+
+# Switch to user
+# su "$username"
+# USER=$(id --user --name)
+# export USER
+
+# Setup tigervnc with its standalone X server
+display_num=1
+while true ; do
+  if ! xdpyinfo -display :$display_num >/dev/null 2>&1 ; then
+    if test -f "/tmp/.X${display_num}-lock" ; then
+      rm "/tmp/.X${display_num}-lock"
+    fi
+    break
+  fi
+  ((display_num++))
+done
+echo "Using DISPLAY:$display_num"
+
+unset DISPLAY
+Xvnc -rfbauth passwd-file -PasswordFile $XDG_CONFIG_HOME/vnc/passwd -SendPrimary 0 -geometry 1920x1080 :"$display_num" &
+export DISPLAY=:$display_num
+
+while true ; do
+  if test -n "$DISPLAY" && xdpyinfo -display "$DISPLAY" >/dev/null 2>&1 ; then
+    echo "DISPLAY is properly set and connected to a display!"
+    break
+  else
+    echo "Waiting for DISPLAY to be properly set and connected to a display..."
+    sleep .5
+  fi
+done
+
+i3
