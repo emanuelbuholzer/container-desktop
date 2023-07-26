@@ -1,28 +1,5 @@
 #!/usr/bin/env bash
 
-username=$1
-
-# Setup credentials
-echo -e "\nPassword for root ..."
-passwd root
-
-echo -e "\nPassword for $username:"
-read -rs password
-
-echo "$username:$password" |chpasswd "$username"
-
-mkdir -p "$XDG_CONFIG_HOME/vnc"
-echo "$password" | vncpasswd -f >> $XDG_CONFIG_HOME/vnc/passwd
-
-unset password
-echo
-
-# Switch to user
-# su "$username"
-# USER=$(id --user --name)
-# export USER
-
-# Setup tigervnc with its standalone X server
 display_num=1
 while true ; do
   if ! xdpyinfo -display :$display_num >/dev/null 2>&1 ; then

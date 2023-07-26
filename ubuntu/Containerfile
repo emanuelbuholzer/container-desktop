@@ -18,6 +18,11 @@ RUN useradd $USERNAME \
     --create-home \
     --shell /bin/bash
 
+ARG PASSWORD_USERNAME
+ARG PASSWORD_ROOT
+RUN echo "root:$PASSWORD_ROOT" | chpasswd
+RUN echo "$USERNAME:$PASSWORD_USERNAME" | chpasswd
+
 USER $USERNAME
 WORKDIR /home/$USERNAME
 
@@ -46,6 +51,8 @@ USER $USERNAME
 # Install tigervnc and tools necesarry for init checks
 USER root
 RUN apt-get update ; apt-get install -y tigervnc-standalone-server x11-utils iproute2
+RUN mkdir -p "$XDG_CONFIG_HOME/vnc" && \
+    echo "$PASSWORD_USERNAME" | vncpasswd -f >> $XDG_CONFIG_HOME/vnc/passwd
 USER $USERNAME
 
 # A wm and term: i3 and kitty 
@@ -58,5 +65,6 @@ COPY kitty.conf /home/$USERNAME/.config/kitty/kitty.conf
 
 USER root
 COPY init /init
-ENTRYPOINT /init ${USERNAME}
+USER $USERNAME
+ENTRYPOINT /init 
 EXPOSE 5901
