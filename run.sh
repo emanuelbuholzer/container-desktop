@@ -107,7 +107,7 @@ if ! test -z $REMOVE_AFTER_EXIT; then
   fi
 
 else
-  REMOVE_AFTER_EXIT_ARGS+="--detach "
+  REMOVE_AFTER_EXIT_ARGS+="--detach -i "
 fi
 
 IMAGE_NAME=$(basename $1)
@@ -121,8 +121,8 @@ podman run \
   --security-opt label=disable \
   --security-opt seccomp=unconfined \
   $VOLUMES \
-  $HOST_NETWORKING \
   --device /dev/fuse:rw \
+  $HOST_NETWORKING \
   $X11_FORWARDING_ARGS \
   --name "$NAME" \
   --hostname "$NAME" \

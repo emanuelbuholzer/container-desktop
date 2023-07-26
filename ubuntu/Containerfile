@@ -5,18 +5,18 @@ FROM docker.io/ubuntu:jammy
 RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
 
 RUN apt-get update && \
-    apt-get install -y sudo curl xz-utils && \
+    apt-get install -y systemd sudo curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
 
 ARG USERNAME
+
 ENV USERNAME=$USERNAME
 RUN useradd $USERNAME \
     --home-dir /home/$USERNAME \
     --groups sudo \
     --create-home \
     --shell /bin/bash
-
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
@@ -46,5 +46,4 @@ USER $USERNAME
 
 
 USER root
-COPY init /init
-ENTRYPOINT /init ${USERNAME}
+ENTRYPOINT ["/lib/systemd/systemd"]
