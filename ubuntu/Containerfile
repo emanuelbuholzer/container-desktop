@@ -67,4 +67,7 @@ COPY kitty.conf /home/$USERNAME/.config/kitty/kitty.conf
 USER root
 COPY init /init
 ENTRYPOINT ["/lib/systemd/systemd"]
+# USER $USERNAME
+# ENTRYPOINT /init 
 EXPOSE 5901
+ENTRYPOINT ["/lib/systemd/systemd"]
