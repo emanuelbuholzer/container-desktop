@@ -13,7 +13,7 @@ done
 echo "Using DISPLAY:$display_num"
 
 unset DISPLAY
-Xvnc -rfbauth passwd-file -PasswordFile $XDG_CONFIG_HOME/vnc/passwd -SendPrimary 0 -geometry 1920x1080 :"$display_num" &
+Xvnc -rfbauth passwd-file -PasswordFile /home/emanuel/.config/vnc/passwd -SendPrimary 0 -geometry 1920x1080 :"$display_num" &
 export DISPLAY=:$display_num
 
 while true ; do
@@ -25,5 +25,5 @@ while true ; do
     sleep .5
   fi
 done
-
+cd /home/emanuel
 i3

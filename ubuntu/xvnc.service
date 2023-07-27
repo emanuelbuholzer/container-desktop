@@ -1,0 +1,11 @@
+[Unit]
+Description=Example server
+After=network.target
+
+[Service]
+ExecStart=/init
+User=emanuel
+Group=emanuel
+
+[Install]
+WantedBy=multi-user.target
