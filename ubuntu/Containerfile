@@ -48,6 +48,26 @@ ENV XDG_CONFIG_DIRS="/etc/xdg"
 RUN IFS=':' ; for CONFIG_DIR in $XDG_CONFIG_DIRS ; do mkdir -p $CONFIG_DIR ; done
 USER $USERNAME
 
+# Set locale
+USER root
+RUN apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y locales && \
+    locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
+USER $USERNAME
+    
+
+ENV LANG=en_US.UTF-8
+
+# Set timezone
+ENV TZ=Etc/UTC
+USER root
+RUN apt update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata && \
+    rm -rf /var/lib/apt/lists/*
+USER $USERNAME
+
 # Install tigervnc and tools necesarry for init checks
 USER root
 RUN apt-get update ; apt-get install -y tigervnc-standalone-server x11-utils iproute2
