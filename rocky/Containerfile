@@ -74,7 +74,7 @@ COPY files/kitty.conf /home/$USERNAME/.config/kitty/kitty.conf
 # Install i3
 RUN dnf -y update ; \
     dnf config-manager --enable crb ; \
-    dnf -y install i3 --setopt=install_weak_deps=False : \
+    dnf -y install i3 --setopt=install_weak_deps=False ; \
     dnf -y install dmenu
 COPY files/i3.config /home/$USERNAME/.config/i3/config
 
